@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using System.Linq;
 using System.Diagnostics;
 
+
 namespace S2_LocalRegExtractor
 {
     class Program
@@ -110,6 +111,7 @@ namespace S2_LocalRegExtractor
             if (createCSV)
                 Console.WriteLine("\nThe CSV file can be found at the following location:\n\n" +
                    Directory.GetCurrentDirectory() + @"\" + csvFile + "\n\n\nPress any key to exit...");
+
             Console.ReadKey();
 
         }
@@ -189,6 +191,7 @@ namespace S2_LocalRegExtractor
                         }
                     }
                 }
+                Console.WriteLine(csvData.Count());
             }
         }
 
@@ -200,8 +203,10 @@ namespace S2_LocalRegExtractor
         {
             using (Microsoft.Win32.RegistryKey key = Registry.LocalMachine.OpenSubKey(uk64))
             {
+
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
+                    
                     //Variables used for csv file generation
                     String x = "\nKey Name: " + subKeyName;
                     String displayName = "";
@@ -250,6 +255,7 @@ namespace S2_LocalRegExtractor
                             installLocation
                             );
                 }
+                Console.WriteLine("Finished adding 64bit uninstall keys: " + csvData.Count());
             }
         }
 
@@ -264,6 +270,7 @@ namespace S2_LocalRegExtractor
             {
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
+                    
                     //Variables used for csv file generation
                     String x = "\nKey Name: " + subKeyName;
                     String displayName = "";
@@ -311,6 +318,7 @@ namespace S2_LocalRegExtractor
                             installLocation
                             );
                 }
+                Console.WriteLine("Finished adding 64bit uninstall keys: " + csvData.Count());
             }
         }
 
