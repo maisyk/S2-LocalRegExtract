@@ -184,6 +184,14 @@ namespace S2_LocalRegExtractor
                     {
                         x = x + "\nDisplay Icon: " + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
                         displayIcon = "" + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
+
+                        if (displayIcon.Contains(","))
+                        {
+                            int index = displayIcon.IndexOf(",");
+
+                            if (index > 0)
+                                displayIcon = displayIcon.Substring(0, index);
+                        }
                     }
 
 
@@ -193,6 +201,7 @@ namespace S2_LocalRegExtractor
                     }
 
                     uk64List.Add(x);
+
                     if (createCSV)
                         csvData.Add(
                             displayName + "," +
@@ -215,16 +224,42 @@ namespace S2_LocalRegExtractor
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
                     String x = "\nKey Name: " + subKeyName;
-
+                    String displayName = "";
+                    String displayIcon = "";
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayName") != null)
+                    {
                         x = x + "\nDisplay Name: " + key.OpenSubKey(subKeyName).GetValue("DisplayName");
+                        displayName = "" + key.OpenSubKey(subKeyName).GetValue("DisplayName");
+                    }
+
 
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayIcon") != null)
+                    {
                         x = x + "\nDisplay Icon: " + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
+                        displayIcon = "" + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
+
+                        if (displayIcon.Contains(","))
+                        {
+                            int index = displayIcon.IndexOf(",");
+                            if (index > 0)
+                                displayIcon = displayIcon.Substring(0, index);
+                        }
+                    }
+
 
                     if (key.OpenSubKey(subKeyName).GetValue("InstallLocation") != null && key.OpenSubKey(subKeyName).GetValue("InstallLocation") != "")
+                    {
                         x = x + "\nInstall Location: " + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
-                    uk32List.Add(x);
+                    }
+
+                    uk64List.Add(x);
+
+                    if (createCSV)
+                        csvData.Add(
+                            displayName + "," +
+                            displayIcon + "," +
+                            subKeyName
+                            );
                 }
             }
         }
@@ -277,7 +312,7 @@ namespace S2_LocalRegExtractor
             //Sort Lists
             applicationKeys.Sort();
             uninstallKeys.Sort();
-            csvData.Sort();
+            //csvData.Sort();
         }
 
         #endregion
@@ -326,6 +361,10 @@ namespace S2_LocalRegExtractor
 
         public void CreateCSVFile()
         {
+            if (File.Exists(csvFile))
+            {
+                File.Delete(csvFile);
+            }
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(csvFile, true))
             {
                 foreach (String line in csvData)
