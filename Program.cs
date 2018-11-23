@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Win32;
+using System.Linq;
+
 
 namespace S2_LocalRegExtractor
 {
@@ -16,10 +18,18 @@ namespace S2_LocalRegExtractor
 
         public String outputFile = "S2-LocalKeyExtractor.log";
 
-        List<String> k64List = new List<String>();
-        List<String> k32List = new List<String>();
-        List<String> uk64List = new List<String>();
-        List<String> uk32List = new List<String>();
+        public List<String> k64List = new List<String>();
+        public List<String> k32List = new List<String>();
+        public List<String> uk64List = new List<String>();
+        public List<String> uk32List = new List<String>();
+
+        public List<String> applicationKeys = new List<String>();
+        public List<String> uninstallKeys = new List<String>();
+
+        public List<String> tempList = new List<String>();
+
+        public String inputCommand = "";
+
         #endregion
 
         #region Main
@@ -29,6 +39,13 @@ namespace S2_LocalRegExtractor
             Console.Title = "S2-LocalRegExtractor";
             Console.ForegroundColor = ConsoleColor.Green;
             S2_LocalRegExtractor.Program m = new S2_LocalRegExtractor.Program();
+            //Console.WriteLine("Help:\n" +
+            //    "\n-sd    Used to seperate data between 32bit and 64bit keys" +
+            //    "\n\nFor a default run press the Return key.");
+
+            //Console.Write("\n\nPlease enter a command: ");
+            //m.inputCommand = Console.ReadLine().ToUpper();
+            //Console.WriteLine("\n\n\n\n");
             m.Run();
         }
 
@@ -39,6 +56,8 @@ namespace S2_LocalRegExtractor
         public void Run()
         {
             Console.WriteLine("Running...");
+            if (inputCommand.Contains("-SD"))
+                
             Get64BitKeys();
             Get32BitKeys();
             Get64BitUninstallKeys();
@@ -142,10 +161,35 @@ namespace S2_LocalRegExtractor
 
         public void SortLists()
         {
+            //Sort Lists
             k64List.Sort();
             k32List.Sort();
             uk64List.Sort();
             uk32List.Sort();
+
+            //Remove duplicates from lists
+  
+            //Application list
+            tempList.AddRange(k64List);
+            tempList.AddRange(k32List);
+            List<String> distinct = tempList.Distinct().ToList();
+
+            foreach (String x in distinct)
+                applicationKeys.Add(x);
+
+            tempList.Clear();
+            distinct.Clear();
+
+            //Uninstall keys
+            tempList.AddRange(uk64List);
+            tempList.AddRange(uk32List);
+            distinct = tempList.Distinct().ToList();
+
+            foreach (String x in distinct)
+                uninstallKeys.Add(x);
+
+            tempList.Clear();
+            distinct.Clear();
         }
 
         #endregion
@@ -164,31 +208,18 @@ namespace S2_LocalRegExtractor
             {
                 file.WriteLine("" +
                     "Note: The display names from the uninstall keys are for refference purposes only\n" +
-                    "for the application name. Do not enter this as part of any launch command in the\n " +
+                    "for the application name. Do not enter this as part of any launch command in the\n" +
                     "AppsAnywhere portal! \n\n\n");
-                file.WriteLine("                                     64bit Applications\n" + stars + "\n");
 
-                foreach (String k in k64List)
-                    file.WriteLine(k);
-                file.WriteLine("Size: " + k64List.Count);
 
-                file.WriteLine("\n\n                                     32bit Applications\n" + stars + "\n");
 
-                foreach (String k in k32List)
-                    file.WriteLine(k);
-                file.WriteLine("Size: " + k32List.Count);
+                file.WriteLine("                             Applications from App Paths (32bit + 64bit)\n" + stars + "\n");
+                foreach (String x in applicationKeys)
+                    file.WriteLine(x);
+                file.WriteLine("                             Applications from Unisntall keys (32bit + 64bit)\n" + stars + "\n");
+                foreach (String x in uninstallKeys)
+                    file.WriteLine(x);
 
-                file.WriteLine("\n\n                                     64bit Applications (From uninstall keys)\n" + stars + "\n");
-
-                foreach (String k in uk64List)
-                    file.WriteLine(k);
-                file.WriteLine("Size: " + uk64List.Count);
-
-                file.WriteLine("\n\n                                     32bit Applications (From uninstall keys)\n" + stars + "\n");
-
-                foreach (String k in uk32List)
-                    file.WriteLine(k);
-                file.WriteLine("Size: " + uk32List.Count);
             }
         }
 
