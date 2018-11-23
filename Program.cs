@@ -18,6 +18,7 @@ namespace S2_LocalRegExtractor
         public String uk32 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\";
 
         public String outputFile = "S2-LocalKeyExtractor.log";
+        public String csvFile = "S2-LocalKeyExtractor.csv";
 
         public List<String> k64List = new List<String>();
         public List<String> k32List = new List<String>();
@@ -29,6 +30,8 @@ namespace S2_LocalRegExtractor
 
         public List<String> tempList = new List<String>();
 
+        public List<String> csvData = new List<String>();
+
         public String inputCommand = "";
 
 
@@ -36,6 +39,9 @@ namespace S2_LocalRegExtractor
         public Stopwatch watch = new Stopwatch();
         public String timeTaken;
 
+
+        //Misc
+        public Boolean createCSV = false;
         #endregion
 
         #region Main
@@ -46,14 +52,25 @@ namespace S2_LocalRegExtractor
             Console.ForegroundColor = ConsoleColor.Green;
             S2_LocalRegExtractor.Program m = new S2_LocalRegExtractor.Program();
             m.watch.Start();
-            //Console.WriteLine("Help:\n" +
-            //    "\n-sd    Used to seperate data between 32bit and 64bit keys" +
-            //    "\n\nFor a default run press the Return key.");
+            Console.WriteLine("Help:\n" +
+                "\n-csv    Create a CSV file of gathered data" +
+                "\n\nFor a default run press the Return key.");
 
-            //Console.Write("\n\nPlease enter a command: ");
-            //m.inputCommand = Console.ReadLine().ToUpper();
-            //Console.WriteLine("\n\n\n\n");
+            Console.Write("\n\nPlease enter a command: ");
+            m.inputCommand = Console.ReadLine().ToUpper();
+            Console.WriteLine("\n\n\n\n");
+            m.SetupCheck();
             m.Run();
+        }
+
+        #endregion
+
+        #region Setup
+
+        public void SetupCheck()
+        {
+            if (inputCommand.Contains("-CSV"))
+                createCSV = true;
         }
 
         #endregion
@@ -74,7 +91,15 @@ namespace S2_LocalRegExtractor
             watch.Stop();
             timeTaken = (((double)watch.ElapsedMilliseconds / (double)1000)).ToString();
             Console.WriteLine("Writing to log file...");
+
             WriteToLogFile();
+
+            if (createCSV)
+            {
+                CreateCSVFile();
+                Console.WriteLine("Generating CSV file");
+            }
+
             Console.WriteLine("\n\nFinished reading keys. Please check log file for details." +
                                 "\n\nTotal time taken: " + timeTaken + " Seconds\n" +
                                 "Total Applications found from App Paths: " + applicationKeys.Count() +
@@ -98,7 +123,15 @@ namespace S2_LocalRegExtractor
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
                     if (!subKeyName.Contains(".dll"))
+                    {
                         k64List.Add(subKeyName);
+
+                        if (createCSV)
+                        {
+                            String x = "," + subKeyName + ",";
+                            csvData.Add(x);
+                        }
+                    }
                 }
             }
         }
@@ -114,7 +147,15 @@ namespace S2_LocalRegExtractor
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
                     if (!subKeyName.Contains(".dll"))
+                    {
                         k32List.Add(subKeyName);
+
+                        if (createCSV)
+                        {
+                            String x = "," + subKeyName + ",";
+                            csvData.Add(x);
+                        }
+                    }
                 }
             }
         }
@@ -130,16 +171,34 @@ namespace S2_LocalRegExtractor
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
                     String x = "\nKey Name: " + subKeyName;
-
+                    String displayName = "";
+                    String displayIcon = "";
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayName") != null)
+                    {
                         x = x + "\nDisplay Name: " + key.OpenSubKey(subKeyName).GetValue("DisplayName");
+                        displayName = "" + key.OpenSubKey(subKeyName).GetValue("DisplayName");
+                    }
+
 
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayIcon") != null)
+                    {
                         x = x + "\nDisplay Icon: " + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
+                        displayIcon = "" + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
+                    }
+
 
                     if (key.OpenSubKey(subKeyName).GetValue("InstallLocation") != null && key.OpenSubKey(subKeyName).GetValue("InstallLocation") != "")
+                    {
                         x = x + "\nInstall Location: " + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
+                    }
+
                     uk64List.Add(x);
+                    if (createCSV)
+                        csvData.Add(
+                            displayName + "," +
+                            displayIcon + "," +
+                            subKeyName
+                            );
                 }
             }
         }
@@ -206,9 +265,19 @@ namespace S2_LocalRegExtractor
             tempList.Clear();
             distinct.Clear();
 
+            //CSV Data
+            tempList.AddRange(csvData);
+            csvData.Clear();
+
+            distinct = tempList.Distinct().ToList();
+
+            foreach (String x in distinct)
+                csvData.Add(x);
+
             //Sort Lists
             applicationKeys.Sort();
             uninstallKeys.Sort();
+            csvData.Sort();
         }
 
         #endregion
@@ -248,6 +317,19 @@ namespace S2_LocalRegExtractor
                 foreach (String x in uninstallKeys)
                     file.WriteLine(x);
 
+            }
+        }
+
+        #endregion
+
+        #region Create a CSV file
+
+        public void CreateCSVFile()
+        {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(csvFile, true))
+            {
+                foreach (String line in csvData)
+                    file.WriteLine(line);
             }
         }
 
