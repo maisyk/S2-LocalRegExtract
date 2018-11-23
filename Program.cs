@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Win32;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Diagnostics;
 
 namespace S2_LocalRegExtractor
@@ -122,13 +121,26 @@ namespace S2_LocalRegExtractor
             {
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
+                    String keyPath = "";
                     if (!subKeyName.Contains(".dll"))
                     {
                         k64List.Add(subKeyName);
 
                         if (createCSV)
                         {
-                            String x = "," + subKeyName + ",";
+                            if (key.OpenSubKey(subKeyName).GetValue("Path") != null)
+                            {
+                                keyPath = "" + key.OpenSubKey(subKeyName).GetValue("Path");
+
+                                keyPath = keyPath.Replace(@"C:\Program Files\", "");
+                                keyPath = keyPath.Replace(@"C:\Program Files (x86)\", "");
+                            }
+                            else
+                            {
+                                keyPath = subKeyName.Replace(".exe", "");
+                            }
+
+                            String x = keyPath + "," + subKeyName + ",N/A,N/A";
                             csvData.Add(x);
                         }
                     }
@@ -146,13 +158,27 @@ namespace S2_LocalRegExtractor
             {
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
+                    String keyPath = "";
                     if (!subKeyName.Contains(".dll"))
                     {
                         k32List.Add(subKeyName);
 
                         if (createCSV)
                         {
-                            String x = "," + subKeyName + ",";
+                            if (key.OpenSubKey(subKeyName).GetValue("Path") != null)
+                            {
+                                keyPath = "" + key.OpenSubKey(subKeyName).GetValue("Path");
+
+                                keyPath = keyPath.Replace(@"C:\Program Files\", "");
+                                keyPath = keyPath.Replace(@"C:\Program Files (x86)\", "");
+                                keyPath = "" + key.OpenSubKey(subKeyName).GetValue("Path");
+                            }
+                            else
+                            {
+                                keyPath = subKeyName.Replace(".exe", "");
+                            }
+
+                            String x = keyPath + "," + subKeyName + ",N/A,N/A";
                             csvData.Add(x);
                         }
                     }
@@ -172,7 +198,9 @@ namespace S2_LocalRegExtractor
                 {
                     String x = "\nKey Name: " + subKeyName;
                     String displayName = "";
-                    String displayIcon = "";
+                    String displayIcon = "Please add manually";
+                    String installLocation = "N/A";
+
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayName") != null)
                     {
                         x = x + "\nDisplay Name: " + key.OpenSubKey(subKeyName).GetValue("DisplayName");
@@ -198,15 +226,20 @@ namespace S2_LocalRegExtractor
                     if (key.OpenSubKey(subKeyName).GetValue("InstallLocation") != null && key.OpenSubKey(subKeyName).GetValue("InstallLocation") != "")
                     {
                         x = x + "\nInstall Location: " + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
+                        installLocation = "" + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
                     }
 
                     uk64List.Add(x);
+
+                    if (displayName == "")
+                        displayName = "Default Name: " + subKeyName;
 
                     if (createCSV)
                         csvData.Add(
                             displayName + "," +
                             displayIcon + "," +
-                            subKeyName
+                            subKeyName + "," +
+                            installLocation
                             );
                 }
             }
@@ -225,7 +258,9 @@ namespace S2_LocalRegExtractor
                 {
                     String x = "\nKey Name: " + subKeyName;
                     String displayName = "";
-                    String displayIcon = "";
+                    String displayIcon = "Please add manually";
+                    String installLocation = "N/A";
+
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayName") != null)
                     {
                         x = x + "\nDisplay Name: " + key.OpenSubKey(subKeyName).GetValue("DisplayName");
@@ -250,15 +285,20 @@ namespace S2_LocalRegExtractor
                     if (key.OpenSubKey(subKeyName).GetValue("InstallLocation") != null && key.OpenSubKey(subKeyName).GetValue("InstallLocation") != "")
                     {
                         x = x + "\nInstall Location: " + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
+                        installLocation = "" + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
                     }
 
                     uk64List.Add(x);
+
+                    if (displayName == "")
+                        displayName = "Default Name: " + subKeyName;
 
                     if (createCSV)
                         csvData.Add(
                             displayName + "," +
                             displayIcon + "," +
-                            subKeyName
+                            subKeyName + "," +
+                            installLocation
                             );
                 }
             }
@@ -367,6 +407,7 @@ namespace S2_LocalRegExtractor
             }
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(csvFile, true))
             {
+                file.WriteLine("Application Name,Executable Name/ Path + Exe,Uninstall Key,Install Location\n");
                 foreach (String line in csvData)
                     file.WriteLine(line);
             }
