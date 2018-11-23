@@ -105,7 +105,11 @@ namespace S2_LocalRegExtractor
                                 "\nTotal Applications found in Uninstall keys: " + uninstallKeys.Count() +
                 "\n\nThe log file can be found at the following location:\n\n" +
 
-                Directory.GetCurrentDirectory() + @"\" + outputFile + "\n\n\nPress any key to exit...");
+                Directory.GetCurrentDirectory() + @"\" + outputFile );
+
+            if (createCSV)
+                Console.WriteLine("\nThe CSV file can be found at the following location:\n\n" +
+                   Directory.GetCurrentDirectory() + @"\" + csvFile + "\n\n\nPress any key to exit...");
             Console.ReadKey();
 
         }
@@ -122,21 +126,23 @@ namespace S2_LocalRegExtractor
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
                     String keyPath = "";
-                    if (!subKeyName.Contains(".dll"))
+                    if (!subKeyName.Contains(".dll")) //If subkey doesn't contain .dll in string
                     {
                         k64List.Add(subKeyName);
 
-                        if (createCSV)
+                        if (createCSV) //If the create CSV option is set to true
                         {
+                            //If the "Path" subkey exists
                             if (key.OpenSubKey(subKeyName).GetValue("Path") != null)
                             {
                                 keyPath = "" + key.OpenSubKey(subKeyName).GetValue("Path");
 
                                 keyPath = keyPath.Replace(@"C:\Program Files\", "");
                                 keyPath = keyPath.Replace(@"C:\Program Files (x86)\", "");
+                                keyPath = keyPath.Replace(";", "");
                             }
                             else
-                            {
+                            {   //If the "Path" subkey doesn't exist
                                 keyPath = subKeyName.Replace(".exe", "");
                             }
 
@@ -171,7 +177,7 @@ namespace S2_LocalRegExtractor
 
                                 keyPath = keyPath.Replace(@"C:\Program Files\", "");
                                 keyPath = keyPath.Replace(@"C:\Program Files (x86)\", "");
-                                keyPath = "" + key.OpenSubKey(subKeyName).GetValue("Path");
+                                keyPath = keyPath.Replace(";", "");
                             }
                             else
                             {
@@ -196,18 +202,20 @@ namespace S2_LocalRegExtractor
             {
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
+                    //Variables used for csv file generation
                     String x = "\nKey Name: " + subKeyName;
                     String displayName = "";
                     String displayIcon = "Please add manually";
                     String installLocation = "N/A";
 
+                    //Display name
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayName") != null)
                     {
                         x = x + "\nDisplay Name: " + key.OpenSubKey(subKeyName).GetValue("DisplayName");
                         displayName = "" + key.OpenSubKey(subKeyName).GetValue("DisplayName");
                     }
 
-
+                    //Display Icon
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayIcon") != null)
                     {
                         x = x + "\nDisplay Icon: " + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
@@ -222,7 +230,7 @@ namespace S2_LocalRegExtractor
                         }
                     }
 
-
+                    //Install location
                     if (key.OpenSubKey(subKeyName).GetValue("InstallLocation") != null && key.OpenSubKey(subKeyName).GetValue("InstallLocation") != "")
                     {
                         x = x + "\nInstall Location: " + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
@@ -256,18 +264,20 @@ namespace S2_LocalRegExtractor
             {
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
+                    //Variables used for csv file generation
                     String x = "\nKey Name: " + subKeyName;
                     String displayName = "";
                     String displayIcon = "Please add manually";
                     String installLocation = "N/A";
 
+                    //Display Name
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayName") != null)
                     {
                         x = x + "\nDisplay Name: " + key.OpenSubKey(subKeyName).GetValue("DisplayName");
                         displayName = "" + key.OpenSubKey(subKeyName).GetValue("DisplayName");
                     }
 
-
+                    //Display Icon
                     if (key.OpenSubKey(subKeyName).GetValue("DisplayIcon") != null)
                     {
                         x = x + "\nDisplay Icon: " + key.OpenSubKey(subKeyName).GetValue("DisplayIcon");
@@ -281,7 +291,7 @@ namespace S2_LocalRegExtractor
                         }
                     }
 
-
+                    //Install location
                     if (key.OpenSubKey(subKeyName).GetValue("InstallLocation") != null && key.OpenSubKey(subKeyName).GetValue("InstallLocation") != "")
                     {
                         x = x + "\nInstall Location: " + key.OpenSubKey(subKeyName).GetValue("InstallLocation");
