@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Win32;
 using System.Linq;
-
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace S2_LocalRegExtractor
 {
@@ -30,6 +31,11 @@ namespace S2_LocalRegExtractor
 
         public String inputCommand = "";
 
+
+        //Time
+        public Stopwatch watch = new Stopwatch();
+        public String timeTaken;
+
         #endregion
 
         #region Main
@@ -39,6 +45,7 @@ namespace S2_LocalRegExtractor
             Console.Title = "S2-LocalRegExtractor";
             Console.ForegroundColor = ConsoleColor.Green;
             S2_LocalRegExtractor.Program m = new S2_LocalRegExtractor.Program();
+            m.watch.Start();
             //Console.WriteLine("Help:\n" +
             //    "\n-sd    Used to seperate data between 32bit and 64bit keys" +
             //    "\n\nFor a default run press the Return key.");
@@ -56,18 +63,24 @@ namespace S2_LocalRegExtractor
         public void Run()
         {
             Console.WriteLine("Running...");
-            if (inputCommand.Contains("-SD"))
-                
+
             Get64BitKeys();
             Get32BitKeys();
             Get64BitUninstallKeys();
             Get32BitUninstallKeys();
 
             SortLists();
-
+            Filtering();
+            watch.Stop();
+            timeTaken = (((double)watch.ElapsedMilliseconds / (double)1000)).ToString();
             Console.WriteLine("Writing to log file...");
             WriteToLogFile();
-            Console.WriteLine("\n\nFinished reading keys. Please check log file for details.\nThe log file can be found at the following location:\n\n" +
+            Console.WriteLine("\n\nFinished reading keys. Please check log file for details." +
+                                "\n\nTotal time taken: " + timeTaken + " Seconds\n" +
+                                "Total Applications found from App Paths: " + applicationKeys.Count() +
+                                "\nTotal Applications found in Uninstall keys: " + uninstallKeys.Count() +
+                "\n\nThe log file can be found at the following location:\n\n" +
+
                 Directory.GetCurrentDirectory() + @"\" + outputFile + "\n\n\nPress any key to exit...");
             Console.ReadKey();
 
@@ -84,7 +97,8 @@ namespace S2_LocalRegExtractor
             {
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
-                    k64List.Add(subKeyName);
+                    if (!subKeyName.Contains(".dll"))
+                        k64List.Add(subKeyName);
                 }
             }
         }
@@ -99,7 +113,8 @@ namespace S2_LocalRegExtractor
             {
                 foreach (String subKeyName in key.GetSubKeyNames())
                 {
-                    k32List.Add(subKeyName);
+                    if (!subKeyName.Contains(".dll"))
+                        k32List.Add(subKeyName);
                 }
             }
         }
@@ -168,7 +183,7 @@ namespace S2_LocalRegExtractor
             uk32List.Sort();
 
             //Remove duplicates from lists
-  
+
             //Application list
             tempList.AddRange(k64List);
             tempList.AddRange(k32List);
@@ -190,6 +205,19 @@ namespace S2_LocalRegExtractor
 
             tempList.Clear();
             distinct.Clear();
+
+            //Sort Lists
+            applicationKeys.Sort();
+            uninstallKeys.Sort();
+        }
+
+        #endregion
+
+        #region Filtering
+
+        public void Filtering()
+        {
+
         }
 
         #endregion
