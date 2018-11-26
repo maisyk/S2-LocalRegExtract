@@ -12,7 +12,6 @@ namespace S2_LocalRegExtractor
 
         #region Variables
 
-        public String csvFile = "S2-LocalKeyExtractor.csv";
 
         //Key locations
         public String k64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\";
@@ -21,8 +20,7 @@ namespace S2_LocalRegExtractor
         public String uk32 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\";
 
         //Logs
-        //public String outputFile = "S2-LocalKeyExtractor.log";
-        //public String csvFile = "S2-LocalKeyExtractor.csv";
+        public String csvFile = "S2-LocalKeyExtractor.csv";
 
         //Temp list to be used by various parts of the application
         public List<String> tempList = new List<String>();
@@ -64,7 +62,6 @@ namespace S2_LocalRegExtractor
 
         //Time
         public Stopwatch watch = new Stopwatch();
-        public String timeTaken;
 
         #endregion
 
@@ -82,6 +79,8 @@ namespace S2_LocalRegExtractor
         /* This method is used to control the flow of the application*/
         public void Run()
         {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Title = "S2-LocalRegExtractor 1.0.1";
             watch.Start(); //Start stop watch
 
             GetUninstallkeys();
@@ -90,6 +89,10 @@ namespace S2_LocalRegExtractor
             ProcessRemainingUK();
             ProcessRemainingAP();
             PrintData();
+            CreateCSVFile();
+            watch.Stop();
+            Console.WriteLine("\n\nTime taken: " + (((double)watch.ElapsedMilliseconds / (double)1000)).ToString() + " Seconds");
+            Console.WriteLine("\n\nDone, press any key to continue....");
 
             Console.ReadKey(); //Pause console window at end of execution
         }
@@ -382,7 +385,7 @@ namespace S2_LocalRegExtractor
 
                         appNameOutput.Add(displayNameUK[UK]);
                         deliveryMethOutput.Add("Locally Installed (OK)");
-                        winLaunchExeOutput.Add(checkForCommas(appKeyList[AP]));
+                        winLaunchExeOutput.Add(commaEncapsulation(appKeyList[AP]));
                         winUninstallKeyOutput.Add("");
 
                         UKtoRemove.Add(UK);
@@ -609,6 +612,19 @@ namespace S2_LocalRegExtractor
 
             #endregion
 
+            foreach (String s in defaultKeyList)
+            {
+                var i = defaultKeyList.IndexOf(s);
+
+                //If application key exists but the coresponding default subkey is empty 
+                if(appKeyList[i] != "" && s == "" && !s.Contains(".dll"))
+                {
+                    appNameOutput.Add(appKeyList[i]);
+                    deliveryMethOutput.Add("Locally Deployed");
+                    winLaunchExeOutput.Add(DEFAULT_KEY);
+                    winUninstallKeyOutput.Add(UNINSTALL_KEY);
+                }
+            }
         }
 
         #endregion
@@ -622,8 +638,8 @@ namespace S2_LocalRegExtractor
             foreach (String i in appNameOutput)
             {
                 item = appNameOutput.IndexOf(i);
-                checkForCommas(i);
-                tempList.Add(i + "," + deliveryMethOutput[item] + "," + winLaunchExeOutput[item] + "," + winUninstallKeyOutput[item]);
+
+                tempList.Add(commaEncapsulation(i) + "," + commaEncapsulation(deliveryMethOutput[item]) + "," + commaEncapsulation(winLaunchExeOutput[item]) + "," + commaEncapsulation(winUninstallKeyOutput[item]));
             }
 
             List<String> distinct = tempList.Distinct().ToList();
@@ -636,31 +652,37 @@ namespace S2_LocalRegExtractor
         }
         #endregion
 
-        public String checkForCommas(String s)
+        #region Comma encapsulation
+
+        public String commaEncapsulation(String s)
         {
             if (s.Contains(",")){
                 s = "\"" + s + "\"";
-                Console.WriteLine("This bit here!: " + s);
             }
 
 
             return s;
         }
+
+        #endregion
+
         #region Create a CSV file
 
-        //public void CreateCSVFile()
-        //{
-        //    if (File.Exists(csvFile))
-        //    {
-        //        File.Delete(csvFile);
-        //    }
-        //    using (System.IO.StreamWriter file = new System.IO.StreamWriter(csvFile, true))
-        //    {
-        //        file.WriteLine("Application Name,Executable Name/ Path + Exe,Uninstall Key,Install Location\n");
-        //        foreach (String line in csvData)
-        //            file.WriteLine(line);
-        //    }
-        //}
+        public void CreateCSVFile()
+        {
+            if (File.Exists(csvFile))
+            {
+                File.Delete(csvFile);
+            }
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(csvFile, true))
+            {
+                file.WriteLine("Application Name,Delivery Method,Windows Executable Name,Windows Uninstall Key\n");
+                foreach (String i in output)
+                {
+                    file.WriteLine(i);
+                }
+            }
+        }
 
         #endregion
     }
