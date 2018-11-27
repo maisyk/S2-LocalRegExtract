@@ -42,6 +42,7 @@ namespace S2_LocalRegExtractor
         public List<String> winLaunchExeOutput = new List<String>();
         public List<String> winUninstallKeyOutput = new List<String>();
 
+
         public List<String> output = new List<String>();
 
         public List<String> csvData = new List<String>();
@@ -80,7 +81,7 @@ namespace S2_LocalRegExtractor
         public void Run()
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Title = "S2-LocalRegExtractor 1.0.1";
+            Console.Title = "S2-LocalRegExtractor 1.0.2";
             watch.Start(); //Start stop watch
 
             GetUninstallkeys();
@@ -92,6 +93,7 @@ namespace S2_LocalRegExtractor
             CreateCSVFile();
             watch.Stop();
             Console.WriteLine("\n\nTime taken: " + (((double)watch.ElapsedMilliseconds / (double)1000)).ToString() + " Seconds");
+            Console.Write("\nThe CSV file can be found in the following location:\n" + Directory.GetCurrentDirectory() + @"\" + csvFile);
             Console.WriteLine("\n\nDone, press any key to continue....");
 
             Console.ReadKey(); //Pause console window at end of execution
@@ -557,8 +559,41 @@ namespace S2_LocalRegExtractor
                     deliveryMethOutput.Add("Locally Deployed");
                     winLaunchExeOutput.Add(displayIconUK[item]);
                     winUninstallKeyOutput.Add(keyNameUK[item]);
+
+                    UKtoRemove.Add(item);
                 }
             }
+
+            #region Remove items
+
+            //Remove items from UK
+
+            foreach (int i in UKtoRemove)
+            {
+                if (keyNameUK[i] != "")
+                {
+                    keyNameUK[i] = "";
+                }
+
+                if (displayNameUK[i] != "")
+                {
+                    displayNameUK[i] = "";
+                }
+
+                if (displayIconUK[i] != "")
+                {
+                    displayIconUK[i] = "";
+                }
+
+                if (installLocationUK[i] != "")
+                {
+                    installLocationUK[i] = "";
+                }
+            }
+
+            UKtoRemove.Clear();
+            #endregion
+
         }
 
         #endregion
@@ -575,10 +610,15 @@ namespace S2_LocalRegExtractor
                 if(s != "")
                 {
                     var item = defaultKeyList.IndexOf(s);
-                    appNameOutput.Add(s);
-                    deliveryMethOutput.Add("Locally Installed (OK)");
-                    winLaunchExeOutput.Add(appKeyList[item]);
-                    winUninstallKeyOutput.Add(UNINSTALL_KEY);
+                    //appNameOutput.Add(s);
+                    //deliveryMethOutput.Add("Locally Installed (OK)");
+                    //winLaunchExeOutput.Add(appKeyList[item]);
+                    //winUninstallKeyOutput.Add(UNINSTALL_KEY);
+
+                    appNameOutput.Insert(0, s);
+                    deliveryMethOutput.Insert(0, "Locally Installed (OK)");
+                    winLaunchExeOutput.Insert(0, appKeyList[item]);
+                    winUninstallKeyOutput.Insert(0, UNINSTALL_KEY);
 
                     APtoRemove.Add(item);
                 }
