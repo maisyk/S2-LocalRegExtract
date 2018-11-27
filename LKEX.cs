@@ -87,8 +87,9 @@ namespace S2_LocalRegExtractor
             GetUninstallkeys();
             GetAppPathKeys();
             ChkUKvAppPaths();
-            ProcessRemainingUK();
             ProcessRemainingAP();
+            ProcessRemainingUK();
+
             PrintData();
             CreateCSVFile();
             watch.Stop();
@@ -307,7 +308,7 @@ namespace S2_LocalRegExtractor
                         AP = pathKeyList.IndexOf(j);
 
                         appNameOutput.Add(displayNameUK[UK]);
-                        deliveryMethOutput.Add("Locally Installed (OK)");
+                        deliveryMethOutput.Add("Locally Installed (OK)"); //1
                         winLaunchExeOutput.Add(appKeyList[AP]);
                         winUninstallKeyOutput.Add("");
 
@@ -386,7 +387,7 @@ namespace S2_LocalRegExtractor
                         AP = defaultKeyList.IndexOf(j);
 
                         appNameOutput.Add(displayNameUK[UK]);
-                        deliveryMethOutput.Add("Locally Installed (OK)");
+                        deliveryMethOutput.Add("Locally Installed (OK)"); //2
                         winLaunchExeOutput.Add(commaEncapsulation(appKeyList[AP]));
                         winUninstallKeyOutput.Add("");
 
@@ -453,12 +454,89 @@ namespace S2_LocalRegExtractor
 
         #endregion
 
+
+        #region Process remaining AppPaths
+
+        public void ProcessRemainingAP()
+        {
+
+            List<int> APtoRemove = new List<int>();
+
+            foreach (String s in defaultKeyList)
+            {
+                if(s != "")
+                {
+                    var item = defaultKeyList.IndexOf(s);
+                    appNameOutput.Add(s);
+                    deliveryMethOutput.Add("Locally Installed (OK)"); //3
+                    winLaunchExeOutput.Add(appKeyList[item]);
+                    winUninstallKeyOutput.Add(UNINSTALL_KEY);
+
+                    //appNameOutput.Insert(0, s);
+                    //deliveryMethOutput.Insert(0, "Locally Installed (OK)");
+                    //winLaunchExeOutput.Insert(0, appKeyList[item]);
+                    //winUninstallKeyOutput.Insert(0, UNINSTALL_KEY);
+
+                    APtoRemove.Add(item);
+                }
+            }
+
+            #region Remove items
+
+
+            //Remove items form AP
+            foreach (int i in APtoRemove)
+            {
+                if (appKeyList[i] != "")
+                {
+                    appKeyList[i] = "";
+                }
+
+                if (defaultKeyList[i] != "")
+                {
+                    defaultKeyList[i] = "";
+                }
+
+
+                if (pathKeyList[i] != "")
+                {
+                    pathKeyList[i] = "";
+                }
+
+            }
+
+            APtoRemove.Clear();
+
+            #endregion
+
+            foreach (String s in defaultKeyList)
+            {
+                var i = defaultKeyList.IndexOf(s);
+
+                //If application key exists but the coresponding default subkey is empty 
+                if(appKeyList[i] != "" && s == "" && !s.Contains(".dll"))
+                {
+                    appNameOutput.Add(appKeyList[i]);
+                    deliveryMethOutput.Add("Locally Deployed"); //4
+                    winLaunchExeOutput.Add(DEFAULT_KEY);
+                    winUninstallKeyOutput.Add(UNINSTALL_KEY);
+                }
+            }
+        }
+
+        #endregion
+
         #region Process remaining uninstall keys
 
         public void ProcessRemainingUK()
         {
 
             List<int> UKtoRemove = new List<int>();
+            List<String> temp1 = new List<String>();
+            List<String> temp2 = new List<String>();
+            List<String> temp3 = new List<String>();
+            List<String> temp4 = new List<String>();
+
 
             foreach (String s in displayIconUK)
             {
@@ -467,7 +545,7 @@ namespace S2_LocalRegExtractor
                 {
                     var a = s.Replace(",0", "");
                     appNameOutput.Add(displayNameUK[item]);
-                    deliveryMethOutput.Add("Locally Installed (Check .exe)");
+                    deliveryMethOutput.Add("Locally Installed (Check .exe)");//5
                     winLaunchExeOutput.Add(a);
                     winUninstallKeyOutput.Add(keyNameUK[item]);
 
@@ -512,7 +590,7 @@ namespace S2_LocalRegExtractor
                 if (s != "")
                 {
                     appNameOutput.Add(displayNameUK[item]);
-                    deliveryMethOutput.Add("Locally Installed (Add .exe)");
+                    deliveryMethOutput.Add("Locally Installed (Add .exe)"); //6
                     winLaunchExeOutput.Add(displayIconUK[item]);
                     winUninstallKeyOutput.Add(keyNameUK[item]);
 
@@ -550,13 +628,13 @@ namespace S2_LocalRegExtractor
             UKtoRemove.Clear();
             #endregion
 
-            foreach(String s in keyNameUK)
+            foreach (String s in keyNameUK)
             {
                 var item = keyNameUK.IndexOf(s);
                 if (s != "")
                 {
                     appNameOutput.Add(displayNameUK[item]);
-                    deliveryMethOutput.Add("Locally Deployed");
+                    deliveryMethOutput.Add("Locally Deployed"); //7
                     winLaunchExeOutput.Add(displayIconUK[item]);
                     winUninstallKeyOutput.Add(keyNameUK[item]);
 
@@ -598,76 +676,6 @@ namespace S2_LocalRegExtractor
 
         #endregion
 
-        #region Process remaining AppPaths
-
-        public void ProcessRemainingAP()
-        {
-
-            List<int> APtoRemove = new List<int>();
-
-            foreach (String s in defaultKeyList)
-            {
-                if(s != "")
-                {
-                    var item = defaultKeyList.IndexOf(s);
-                    //appNameOutput.Add(s);
-                    //deliveryMethOutput.Add("Locally Installed (OK)");
-                    //winLaunchExeOutput.Add(appKeyList[item]);
-                    //winUninstallKeyOutput.Add(UNINSTALL_KEY);
-
-                    appNameOutput.Insert(0, s);
-                    deliveryMethOutput.Insert(0, "Locally Installed (OK)");
-                    winLaunchExeOutput.Insert(0, appKeyList[item]);
-                    winUninstallKeyOutput.Insert(0, UNINSTALL_KEY);
-
-                    APtoRemove.Add(item);
-                }
-            }
-
-            #region Remove items
-
-
-            //Remove items form AP
-            foreach (int i in APtoRemove)
-            {
-                if (appKeyList[i] != "")
-                {
-                    appKeyList[i] = "";
-                }
-
-                if (defaultKeyList[i] != "")
-                {
-                    defaultKeyList[i] = "";
-                }
-
-
-                if (pathKeyList[i] != "")
-                {
-                    pathKeyList[i] = "";
-                }
-
-            }
-
-            APtoRemove.Clear();
-
-            #endregion
-
-            foreach (String s in defaultKeyList)
-            {
-                var i = defaultKeyList.IndexOf(s);
-
-                //If application key exists but the coresponding default subkey is empty 
-                if(appKeyList[i] != "" && s == "" && !s.Contains(".dll"))
-                {
-                    appNameOutput.Add(appKeyList[i]);
-                    deliveryMethOutput.Add("Locally Deployed");
-                    winLaunchExeOutput.Add(DEFAULT_KEY);
-                    winUninstallKeyOutput.Add(UNINSTALL_KEY);
-                }
-            }
-        }
-
-        #endregion
 
         #region Print data for testing 
 
