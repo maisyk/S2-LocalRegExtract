@@ -24,6 +24,7 @@ namespace S2_LocalRegExtractor
 
         //Temp list to be used by various parts of the application
         public List<String> tempList = new List<String>();
+        public List<String> outputTempList = new List<String>();
 
         //Uninstall key lists
         public List<String> keyNameUK = new List<String>();
@@ -90,7 +91,7 @@ namespace S2_LocalRegExtractor
             ProcessRemainingAP();
             ProcessRemainingUK();
 
-            PrintData();
+            //PrintData();
             CreateCSVFile();
             watch.Stop();
             Console.WriteLine("\n\nTime taken: " + (((double)watch.ElapsedMilliseconds / (double)1000)).ToString() + " Seconds");
@@ -307,16 +308,18 @@ namespace S2_LocalRegExtractor
                         UK = installLocationUK.IndexOf(i);
                         AP = pathKeyList.IndexOf(j);
 
-                        appNameOutput.Add(displayNameUK[UK]);
-                        deliveryMethOutput.Add("Locally Installed (OK)"); //1
-                        winLaunchExeOutput.Add(appKeyList[AP]);
-                        winUninstallKeyOutput.Add("");
-
                         UKtoRemove.Add(UK);
                         APtoRemove.Add(AP);
+
+                        //Add to output temp list:
+                        AddToTempList(displayNameUK[UK], "Locally Installed (OK)", appKeyList[AP], UNINSTALL_KEY);
                     }
                 }
             }
+
+            outputTempList.Sort();
+            output.AddRange(outputTempList);
+            outputTempList.Clear();
 
             #region Remove items
 
@@ -386,17 +389,18 @@ namespace S2_LocalRegExtractor
                         UK = displayIconUK.IndexOf(i);
                         AP = defaultKeyList.IndexOf(j);
 
-                        appNameOutput.Add(displayNameUK[UK]);
-                        deliveryMethOutput.Add("Locally Installed (OK)"); //2
-                        winLaunchExeOutput.Add(commaEncapsulation(appKeyList[AP]));
-                        winUninstallKeyOutput.Add("");
-
                         UKtoRemove.Add(UK);
                         APtoRemove.Add(AP);
 
+                        //Add to output temp list:
+                        AddToTempList(displayNameUK[UK], "Locally Installed (OK)", appKeyList[AP], UNINSTALL_KEY);
                     }
                 }
             }
+
+            outputTempList.Sort();
+            output.AddRange(outputTempList);
+            outputTempList.Clear();
 
             #region Remove items
 
@@ -467,19 +471,16 @@ namespace S2_LocalRegExtractor
                 if(s != "")
                 {
                     var item = defaultKeyList.IndexOf(s);
-                    appNameOutput.Add(s);
-                    deliveryMethOutput.Add("Locally Installed (OK)"); //3
-                    winLaunchExeOutput.Add(appKeyList[item]);
-                    winUninstallKeyOutput.Add(UNINSTALL_KEY);
-
-                    //appNameOutput.Insert(0, s);
-                    //deliveryMethOutput.Insert(0, "Locally Installed (OK)");
-                    //winLaunchExeOutput.Insert(0, appKeyList[item]);
-                    //winUninstallKeyOutput.Insert(0, UNINSTALL_KEY);
 
                     APtoRemove.Add(item);
+
+                    AddToTempList(s, "Locally Installed (OK)", appKeyList[item], UNINSTALL_KEY);
                 }
             }
+
+            outputTempList.Sort();
+            output.AddRange(outputTempList);
+            outputTempList.Clear();
 
             #region Remove items
 
@@ -516,13 +517,46 @@ namespace S2_LocalRegExtractor
                 //If application key exists but the coresponding default subkey is empty 
                 if(appKeyList[i] != "" && s == "" && !s.Contains(".dll"))
                 {
-                    appNameOutput.Add(appKeyList[i]);
-                    deliveryMethOutput.Add("Locally Deployed"); //4
-                    winLaunchExeOutput.Add(DEFAULT_KEY);
-                    winUninstallKeyOutput.Add(UNINSTALL_KEY);
+
+                    APtoRemove.Add(i);
+
+                    AddToTempList(appKeyList[i], "Locally Deployed", DEFAULT_KEY, UNINSTALL_KEY);
                 }
             }
+
+            outputTempList.Sort();
+            output.AddRange(outputTempList);
+            outputTempList.Clear();
+
+            #region Remove items
+
+
+            //Remove items form AP
+            foreach (int i in APtoRemove)
+            {
+                if (appKeyList[i] != "")
+                {
+                    appKeyList[i] = "";
+                }
+
+                if (defaultKeyList[i] != "")
+                {
+                    defaultKeyList[i] = "";
+                }
+
+
+                if (pathKeyList[i] != "")
+                {
+                    pathKeyList[i] = "";
+                }
+
+            }
+
+            APtoRemove.Clear();
+
+            #endregion
         }
+
 
         #endregion
 
@@ -544,15 +578,16 @@ namespace S2_LocalRegExtractor
                 if (s.Contains(".exe"))
                 {
                     var a = s.Replace(",0", "");
-                    appNameOutput.Add(displayNameUK[item]);
-                    deliveryMethOutput.Add("Locally Installed (Check .exe)");//5
-                    winLaunchExeOutput.Add(a);
-                    winUninstallKeyOutput.Add(keyNameUK[item]);
 
                     UKtoRemove.Add(item);
 
+                    AddToTempList(displayNameUK[item], "Locally Installed (Check .exe)", a, keyNameUK[item]);
                 }
             }
+
+            outputTempList.Sort();
+            output.AddRange(outputTempList);
+            outputTempList.Clear();
 
             #region Remove items
 
@@ -589,14 +624,16 @@ namespace S2_LocalRegExtractor
                 var item = installLocationUK.IndexOf(s);
                 if (s != "")
                 {
-                    appNameOutput.Add(displayNameUK[item]);
-                    deliveryMethOutput.Add("Locally Installed (Add .exe)"); //6
-                    winLaunchExeOutput.Add(displayIconUK[item]);
-                    winUninstallKeyOutput.Add(keyNameUK[item]);
 
                     UKtoRemove.Add(item);
+
+                    AddToTempList(displayNameUK[item], "Locally Installed (Add .exe)", displayIconUK[item], keyNameUK[item]);
                 }
             }
+
+            outputTempList.Sort();
+            output.AddRange(outputTempList);
+            outputTempList.Clear();
 
             #region Remove items
 
@@ -633,14 +670,17 @@ namespace S2_LocalRegExtractor
                 var item = keyNameUK.IndexOf(s);
                 if (s != "")
                 {
-                    appNameOutput.Add(displayNameUK[item]);
-                    deliveryMethOutput.Add("Locally Deployed"); //7
-                    winLaunchExeOutput.Add(displayIconUK[item]);
-                    winUninstallKeyOutput.Add(keyNameUK[item]);
 
                     UKtoRemove.Add(item);
+
+                    AddToTempList(displayNameUK[item], "Locally Deployed", displayIconUK[item], keyNameUK[item]);
+
                 }
             }
+
+            outputTempList.Sort();
+            output.AddRange(outputTempList);
+            outputTempList.Clear();
 
             #region Remove items
 
@@ -676,6 +716,13 @@ namespace S2_LocalRegExtractor
 
         #endregion
 
+        #region Add to temp output list
+        /* Used to add data to temp list */
+        public void AddToTempList(String a, String b, String c, String d)
+        {
+            outputTempList.Add(commaEncapsulation(a) + "," + commaEncapsulation(b) + "," + commaEncapsulation(c) + "," + commaEncapsulation(d));
+        }
+        #endregion
 
         #region Print data for testing 
 
@@ -720,11 +767,27 @@ namespace S2_LocalRegExtractor
         {
             if (File.Exists(csvFile))
             {
-                File.Delete(csvFile);
+                try
+                {
+                    File.Delete(csvFile);
+                }
+                catch
+                {
+                    Console.WriteLine("\n\nCould not create CSV file.. It may be open in another application. \nPlease close it and press any key to continue");
+                    Console.ReadKey();
+                    CreateCSVFile();
+                }
+                
             }
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(csvFile, true))
             {
                 file.WriteLine("Application Name,Delivery Method,Windows Executable Name,Windows Uninstall Key\n");
+
+                List<String> distinct = output.Distinct().ToList();
+                output.Clear();
+
+                output.AddRange(distinct);
+
                 foreach (String i in output)
                 {
                     file.WriteLine(i);
