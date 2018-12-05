@@ -43,11 +43,13 @@ namespace S2_LocalRegExtractor
         public List<String> winLaunchExeOutput = new List<String>();
         public List<String> winUninstallKeyOutput = new List<String>();
 
-
+        //Holds temp output data before filtering
         public List<String> output = new List<String>();
 
+        //Filtered data for csv output
         public List<String> csvData = new List<String>();
 
+        //Default data var for input data on Console.ReadKeys() method
         public String inputCommand = "";
 
         //Default variables for uninstall keys - You can edit these to set the default output for when 
@@ -457,7 +459,6 @@ namespace S2_LocalRegExtractor
         }
 
         #endregion
-
 
         #region Process remaining AppPaths
 
