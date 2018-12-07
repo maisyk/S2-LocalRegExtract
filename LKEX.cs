@@ -84,7 +84,7 @@ namespace S2_LocalRegExtractor
         public void Run()
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Title = "S2-LocalRegExtractor 1.0.2";
+            Console.Title = "S2-LocalRegExtractor 1.0.3";
             watch.Start(); //Start stop watch
 
             GetUninstallkeys();
