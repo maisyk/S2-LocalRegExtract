@@ -304,7 +304,7 @@ namespace S2_LocalRegExtractor
                 foreach (String j in pathKeyList)
                 {
                     //If i is not equal to "" and i is equal to J
-                    if (i != "" && i == j)
+                    if (i != "" && i == j && !i.Contains(".dll"))
                     {
                         //Get index of item in Uninstall Key list and AppPath list
                         UK = installLocationUK.IndexOf(i);
@@ -469,7 +469,7 @@ namespace S2_LocalRegExtractor
 
             foreach (String s in defaultKeyList)
             {
-                if(s != "")
+                if(s != "" && !s.Contains(".dll"))
                 {
                     var item = defaultKeyList.IndexOf(s);
 
