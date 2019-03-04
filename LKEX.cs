@@ -9,7 +9,6 @@ namespace S2_LocalRegExtractor
 {
     class LKEX
     {
-
         #region Variables
 
 
@@ -84,7 +83,7 @@ namespace S2_LocalRegExtractor
         public void Run()
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Title = "S2-LocalRegExtractor 1.0.3";
+            Console.Title = "S2-LocalRegExtractor 1.0.4";
             watch.Start(); //Start stop watch
 
             GetUninstallkeys();
@@ -119,9 +118,11 @@ namespace S2_LocalRegExtractor
             var displayIcon = DISPLAY_ICON;
             var installLocation = INSTALL_LOCATION;
 
+            var RegistryBase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
 
             //64bit Uninstall keys
-            using (Microsoft.Win32.RegistryKey key = Registry.LocalMachine.OpenSubKey(uk64))
+            //using (Microsoft.Win32.RegistryKey key = Registry.LocalMachine.OpenSubKey(uk64))
+            using (Microsoft.Win32.RegistryKey key = RegistryBase.OpenSubKey(uk64))
             {
 
                 foreach (String subKeyName in key.GetSubKeyNames())
@@ -161,8 +162,10 @@ namespace S2_LocalRegExtractor
                 }
             }
 
+            RegistryBase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+
             //32bit Uninstall keys
-            using (Microsoft.Win32.RegistryKey key = Registry.LocalMachine.OpenSubKey(uk32))
+            using (Microsoft.Win32.RegistryKey key = RegistryBase.OpenSubKey(uk32))
             {
 
                 foreach (String subKeyName in key.GetSubKeyNames())
@@ -213,8 +216,10 @@ namespace S2_LocalRegExtractor
             var defaultKey = DEFAULT_KEY;
             var pathKey = PATH;
 
+            var RegistryBase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+
             //64bit AppPath keys
-            using (Microsoft.Win32.RegistryKey key = Registry.LocalMachine.OpenSubKey(k64))
+            using (Microsoft.Win32.RegistryKey key = RegistryBase.OpenSubKey(k64))
             {
 
                 foreach (String subKeyName in key.GetSubKeyNames())
@@ -249,8 +254,10 @@ namespace S2_LocalRegExtractor
                 }
             }
 
+            RegistryBase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+
             //32bit AppPath keys
-            using (Microsoft.Win32.RegistryKey key = Registry.LocalMachine.OpenSubKey(k32))
+            using (Microsoft.Win32.RegistryKey key = RegistryBase.OpenSubKey(k32))
             {
 
                 foreach (String subKeyName in key.GetSubKeyNames())
